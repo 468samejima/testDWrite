@@ -381,7 +381,7 @@ namespace DirectN.WinUI3.testDWrite
                 #endregion
                 
                 // DirectWrite Renderer
-                RendererDW.RenderDirectWrite();
+                // RendererDW.RenderDirectWrite();
 
                 _swapChain.Present(1, 0);
             }

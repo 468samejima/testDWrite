@@ -90,7 +90,7 @@ namespace DirectN.WinUI3.testDWrite
                 colorContext = cCon.GetInterfacePointer<ID2D1ColorContext>()    //←別に0で良い
             };
 
-            m_d2dBitmap = m_d2dDeviceContext.CreateBitmapFromDxgiSurface(m_dxgiSurface, bitmapProps);
+            // m_d2dBitmap = m_d2dDeviceContext.CreateBitmapFromDxgiSurface(m_dxgiSurface, bitmapProps);
         }
 
         private IComObject<ID2D1Bitmap1> m_d2dBitmap;
