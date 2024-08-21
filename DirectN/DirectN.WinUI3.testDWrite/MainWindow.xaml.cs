@@ -68,22 +68,23 @@ namespace DirectN.WinUI3.testDWrite
             //Dispose();
             //Init();
             if (!isPanelLoaded) return;
+            RendererDW.ReleaseDWResources();
 
             CompositionTarget.Rendering -= Render;
-
+            
             _framebufferRTV?.Dispose();
             _framebufferDSV?.Dispose();
 
             if (_framebufferTexture != null) _framebufferTexture.Dispose();
-
-            _swapChain.Object.ResizeBuffers(
-                2u,
-                (uint)panel.ActualWidth,
-                (uint)panel.ActualHeight,
-                DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM,    // SwapChainFormat
-                (uint)DXGI_SWAP_CHAIN_FLAG.DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH    // Flags
-             );
-
+            
+            try
+            {
+                _swapChain.ResizeBuffers(2, (uint)panel.ActualWidth, (uint)panel.ActualHeight, DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM, 0);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
 
             // get new backbuffer
             _framebufferTexture = _swapChain.GetBuffer<ID3D11Texture2D>(0);
@@ -375,13 +376,13 @@ namespace DirectN.WinUI3.testDWrite
                 _deviceContext.PSSetShaderResources(1, new[] { _shadowmapSRV });
                 _deviceContext.PSSetShader(_framebufferPS);
 
-                //_deviceContext.DrawInstanced(8, 24, 0, 0);
+                _deviceContext.DrawInstanced(8, 24, 0, 0);
 
                 _deviceContext.PSSetShaderResources(1, new IComObject<ID3D11ShaderResourceView>[] { null });
                 #endregion
-                
+
                 // DirectWrite Renderer
-                // RendererDW.RenderDirectWrite();
+                RendererDW.RenderDirectWrite();
 
                 _swapChain.Present(1, 0);
             }

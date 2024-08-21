@@ -19,6 +19,7 @@ namespace DirectN.WinUI3.testDWrite
 
         private IComObject<IDWriteFactory> m_DWriteFactory = null;
         private IComObject<ID2D1Factory3> m_d2dFactory = null;
+        private IComObject<IDXGIDevice1> m_dxgiDevice = null;
         private IComObject<ID2D1Device> m_d2dDevice = null;
         private IComObject<ID2D1DeviceContext> m_d2dDeviceContext = null;
         private IComObject<IDXGISurface> m_dxgiSurface = null;
@@ -49,21 +50,45 @@ namespace DirectN.WinUI3.testDWrite
         /// </summary>
         public void InitDirectWrite(IComObject<IDXGIDevice1> _dxgiDevice, IComObject<ID3D11Texture2D> _texture2d)
         {
+            m_dxgiDevice = _dxgiDevice;
             m_DWriteFactory = DWriteFunctions.DWriteCreateFactory(DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_SHARED);
             m_d2dFactory = D2D1Functions.D2D1CreateFactory<ID2D1Factory3>(D2D1_FACTORY_TYPE.D2D1_FACTORY_TYPE_SINGLE_THREADED);
-            m_d2dDevice = m_d2dFactory.CreateDevice<ID2D1Device>(_dxgiDevice);
+            m_d2dDevice = m_d2dFactory.CreateDevice<ID2D1Device>(m_dxgiDevice);
             m_d2dDeviceContext = m_d2dDevice.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE);
-            //m_dxgiSurface = _texture2d.As<IComObject<IDXGISurface>>();    ←m_dxgiSurface is null
-            var surface = _texture2d.Object.As<IDXGISurface>();
-            m_dxgiSurface = ComObject.From<IDXGISurface>(surface);
+            m_dxgiSurface = _texture2d.AsComObject<IDXGISurface>();
+
             CreateBitmap();
+        }
+
+        public void ReleaseDWResources()
+        {
+            if (m_d2dBitmap != null)
+            {
+                m_d2dBitmap.Dispose();
+                m_d2dBitmap = null;
+            }
+            if (m_dxgiSurface != null)
+            {
+                m_dxgiSurface.Dispose();
+                m_dxgiSurface = null;
+            }
+            if (m_d2dDeviceContext != null)
+            {
+                m_d2dDeviceContext.Dispose();
+                m_d2dDeviceContext = null;
+            }
+            if (m_d2dDevice != null)
+            {
+                m_d2dDevice.Dispose();
+                m_d2dDevice = null;
+            }
         }
 
         public void ResizeDirectWriteResources(IComObject<ID3D11Texture2D> _texture2d)
         {
-            //m_dxgiSurface = _texture2d.As<IComObject<IDXGISurface>>();
-            var surface = _texture2d.Object.As<IDXGISurface>();
-            m_dxgiSurface = ComObject.From<IDXGISurface>(surface);
+            m_d2dDevice = m_d2dFactory.CreateDevice<ID2D1Device>(m_dxgiDevice);
+            m_d2dDeviceContext = m_d2dDevice.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE);
+            m_dxgiSurface = _texture2d.AsComObject<IDXGISurface>();
             CreateBitmap();
         }
 
@@ -90,7 +115,7 @@ namespace DirectN.WinUI3.testDWrite
                 colorContext = cCon.GetInterfacePointer<ID2D1ColorContext>()    //←別に0で良い
             };
 
-            // m_d2dBitmap = m_d2dDeviceContext.CreateBitmapFromDxgiSurface(m_dxgiSurface, bitmapProps);
+            m_d2dBitmap = m_d2dDeviceContext.CreateBitmapFromDxgiSurface(m_dxgiSurface, bitmapProps);
         }
 
         private IComObject<ID2D1Bitmap1> m_d2dBitmap;
